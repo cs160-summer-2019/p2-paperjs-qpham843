@@ -1,0 +1,190 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  	<title>P3 Coloring</title>
+
+	<script type="text/javascript" src="{% static 'coloring/vendors/jquery/jquery-3.3.1.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'coloring/vendors/paper/paper-full.min.js' %}"></script>
+
+	<style type="text/css">
+		#color-palette {
+			width: 300px;
+			background-color: #f1f1f1;
+			display: flex;
+			flex-wrap: wrap;
+			position: absolute;
+      margin: auto;
+			top: 0;
+		}
+
+		.swatch {
+			width: 24px;
+			height: 24px;
+			-moz-border-radius: 12px;
+			-webkit-border-radius: 12px;
+			border-radius: 12px;
+			margin: 3px;
+		}
+
+    
+    #custom-color-palette {
+      width:30%;
+      background-color: #f1f1f1;
+      display: flex;
+      overflow: wrap;
+      position: relative;
+      bottom: 10px;
+      margin: auto;
+    }
+    
+    .dot {
+      height: 50px;
+      width: 50px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    
+    #current-color {
+      background-color: #f1f1f1;
+    }
+    
+	</style>
+
+	<script type="text/javascript">
+		window.onload = function() {
+
+			// color palette
+			var cp = {
+				history: ["#000000"], // black selected by default
+				options: [],
+				$container: $('#color-palette')
+			}
+
+			// create a color palette with the given colors
+			function createColorPalette(colors){
+
+				// create a swatch for each color
+				for (var i = colors.length - 1; i >= 0; i--) {
+					var $swatch = $("<div>").css("background-color", colors[i])
+									   .addClass("swatch");
+					$swatch.click(function(){
+						// add color to the color palette history
+					  cp.history.push($(this).css("background-color"));
+            var rgb = $(this).css("background-color").split("(")[1].split(")")[0].split(", ");
+            var colorHex = RGBToHex($(this).css("background-color"));
+            updateCustomCPOptions(colorHex);
+					});
+					cp.$container.append($swatch);
+				}
+			}
+      
+      //HERE ONWARDS
+      
+      function RGBToHex(rgb) {
+        // Choose correct separator
+        let sep = rgb.indexOf(",") > -1 ? "," : " ";
+        // Turn "rgb(r,g,b)" into [r,g,b]
+        rgb = rgb.substr(4).split(")")[0].split(sep);
+        let r = (+rgb[0]).toString(16),
+        g = (+rgb[1]).toString(16),
+        b = (+rgb[2]).toString(16);
+        if (r.length == 1)
+          r = "0" + r;
+        if (g.length == 1)
+          g = "0" + g;
+        if (b.length == 1)
+          b = "0" + b;
+        return "#" + r + g + b;
+     }
+      
+      //custom color plate
+      var customCP = {
+				history: ["#000000"], // black selected by default
+				options: ["#000000"], // black added by default
+				$container: $('#custom-color-palette')
+			}
+      // creat a custom color palette with the given color
+      function createCustomColorsPalette(colors) {
+        // create a swatch for each colors
+        for (var i = customCP.options.length - 1; i >= 0; i--) {
+          console.log(customCP.options[i]);
+					var $swatch = $("<div>").css("background-color", customCP.options[i])
+									   .addClass("swatch");
+					$swatch.click(function(){
+						// add color to the color palette history
+					  	customCP.history.push($(this).css("background-color"));
+					});
+					customCP.$container.append($swatch);
+      }
+    }
+      
+      function compareString(st1, st2) {
+        if (st1.length != st2.length) {
+          return false;
+            }
+        for (var i = 0; i <= st1.length; i++) {
+          if (st1.charAt(i) != st2.charAt(i)) {
+            return false;
+          }
+        } return true;
+      }
+      
+      //update function
+      function updateCustomCPOptions(color) {
+        console.log(color);
+        var contain = false;
+        for (var i = 0; i <= (customCP.options.length - 1); i++) {
+          console.log(customCP.options[i]);
+          if (compareString(color, customCP.options[i])) {
+            console.log("same");
+            contain = true;
+          }
+        }
+        if (!(contain)) {
+          customCP.options.push(color);
+          var $swatch = $("<div>").css("background-color", color)
+									   .addClass("swatch");
+          $swatch.click(function(){
+						// add color to the color palette history
+					  	customCP.history.push($(this).css("background-color"));
+					});
+					customCP.$container.append($swatch);
+        }
+      }
+      // loads a set of colors from a json to create a color palette
+			function getCustomColorsCreatePalette(){
+				customCP.$container.html(" ");
+				$.getJSON('/static/coloring/vendors/material/material-colors.json', function(colors){
+					var keys = Object.keys(colors);
+					createCustomColorsPalette(customCP.options);
+				});
+			}
+
+			// loads a set of colors from a json to create a color palette
+			function getColorsCreatePalette(){
+				cp.$container.html(" ");
+				$.getJSON('/static/coloring/vendors/material/material-colors.json', function(colors){
+					var keys = Object.keys(colors);
+					for (var i = keys.length - 1; i >= 0; i--) {
+						cp.options.push(colors[keys[i]][500]);
+					}
+					createColorPalette(cp.options);
+				});
+			}
+
+			getColorsCreatePalette();
+      getCustomColorsCreatePalette();
+		}
+	</script>
+</head>
+<body>	
+	<div id="color-palette"></div>
+  <br>
+  <br>
+  <div id="custom-color-palette"></div>
+  <div class="dot" id="current-color"></div>
+</body>
+</html>

@@ -1,0 +1,252 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  	<title>P3 Prototype</title>
+	<script type="text/javascript" src="{% static 'coloring/vendors/jquery/jquery-3.3.1.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'coloring/vendors/paper/paper-full.min.js' %}"></script>
+</head>
+<body>	
+  <div class="row">
+    <div class="column">
+      <canvas id="myCanvas"></canvas>
+    </div>
+    <div class="column">
+      <img id="myimage" src="/static/coloring/images/Rainbow.svg">
+    </div>
+  </div>
+	<pre id="output"></pre>
+	<div id="box"> Current Color Box</div>
+  <div id="mousetracker"></div>
+  <button id='cal'> Switch IMG to Cal Logo </button>
+  <div id="custom-color-palette"></div>
+</body>
+  
+<style>
+  .row {
+    display: flex;
+    height: 300px;
+  }
+
+  .column {
+    flex: 50%;
+    padding: 5px;
+  }
+	pre {color: black}
+	img {
+    position: relative;
+    float: left;
+    width: 300px;
+  }
+  #myCanvas {
+    float:left;
+    width: 400px;
+    height: 300px; 
+	}
+  
+  		.swatch {
+			width: 24px;
+			height: 24px;
+			-moz-border-radius: 12px;
+			-webkit-border-radius: 12px;
+			border-radius: 12px;
+			margin: 3px;
+		}
+
+    
+    #custom-color-palette {
+      width:30%;
+      background-color: #f1f1f1;
+      display: flex;
+      overflow: wrap;
+      position: relative;
+      bottom: 10px;
+      margin: auto;
+    }
+    
+    .dot {
+      height: 50px;
+      width: 50px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    
+    #current-color {
+      background-color: #f1f1f1;
+    }
+</style>
+  
+<script>
+window.onload = function() { 
+  var cp = {
+		history: ["#000000"],
+	}
+    
+  
+	var canvas = document.getElementById('myCanvas');
+  paper.setup(canvas);
+    
+  drawSnowman(cp);
+  
+  setupCollection(cp);
+  
+  $("#cal").click(function() {
+    document.getElementById("myimage").src = "/static/coloring/images/CalLogo.jpg";
+  });
+  
+  $("body").mousemove(function(event) {
+    document.getElementById("mousetracker").innerHTML = "(X: " + event.pageX + " , Y: " + event.pageY + ")";
+  });
+  
+  
+  //HERE ONWARDS ***
+      //custom color plate
+      var customCP = {
+				history: ["#000000"], // black selected by default
+				options: ["#000000"], // black added by default
+				$container: $('#custom-color-palette')
+			}
+      // creat a custom color palette with the given color
+      function createCustomColorsPalette(colors) {
+        // create a swatch for each colors
+        for (var i = customCP.options.length - 1; i >= 0; i--) {
+          console.log(customCP.options[i]);
+					var $swatch = $("<div>").css("background-color", customCP.options[i])
+									   .addClass("swatch");
+					$swatch.click(function(){
+						// add color to the color palette history
+					  	customCP.history.push($(this).css("background-color"));
+					});
+					customCP.$container.append($swatch);
+      }
+    }
+      
+      function compareString(st1, st2) {
+        if (st1.length != st2.length) {
+          return false;
+            }
+        for (var i = 0; i <= st1.length; i++) {
+          if (st1.charAt(i) != st2.charAt(i)) {
+            return false;
+          }
+        } return true;
+      }
+      
+      //update function
+      function updateCustomCPOptions(color) {
+        console.log(color);
+        var contain = false;
+        for (var i = 0; i <= (customCP.options.length - 1); i++) {
+          console.log(customCP.options[i]);
+          if (compareString(color, customCP.options[i])) {
+            console.log("same");
+            contain = true;
+          }
+        }
+        if (!(contain)) {
+          customCP.options.push(color);
+          var $swatch = $("<div>").css("background-color", color)
+									   .addClass("swatch");
+          $swatch.click(function(){
+						// add color to the color palette history
+					  	customCP.history.push($(this).css("background-color"));
+					});
+					customCP.$container.append($swatch);
+        }
+      }
+      // loads a set of colors from a json to create a color palette
+			function getCustomColorsCreatePalette(){
+				customCP.$container.html(" ");
+				$.getJSON('/static/coloring/vendors/material/material-colors.json', function(colors){
+					var keys = Object.keys(colors);
+					createCustomColorsPalette(customCP.options);
+				});
+			}
+
+      getCustomColorsCreatePalette();
+  //TO HERE ***
+  function setupCollection(cp) {
+	$('#myimage').mousedown(function(e) {
+	  if(!this.canvas) {
+		  this.canvas = $('<canvas />')[0];
+			this.canvas.width = this.width;
+			this.canvas.height = this.height;
+			this.canvas.getContext('2d').drawImage(this, 0, 0, this.width, this.height);
+		}
+		var pixelData = this.canvas.getContext('2d').getImageData(event.offsetX, event.offsetY, 1, 1).data;
+		$('#output').html('R: ' + pixelData[0] + '<br>G: ' + pixelData[1] + '<br>B: ' + pixelData[2] + '<br>A: ' + pixelData[3]);
+		var rgbavalue = "rgb(" + pixelData[0] + "," + pixelData[1] + "," + pixelData[2] + "," + pixelData[3] + ")";
+		document.getElementById("box").style.backgroundColor = rgbavalue;
+    var hexval = RGBToHex(pixelData[0], pixelData[1], pixelData[2]);
+    cp.history.push(hexval);
+    updateCustomCPOptions(hexval);
+	  });
+  }
+}
+
+function drawRectangle(cp) {
+  var tool = new paper.Tool();
+  var apath = new paper.Path.Rectangle(new paper.Point(0, 0), new paper.Point(400, 400));
+  var shape = new paper.Path.Circle(new paper.Point(100, 100), 100);
+  shape.fillColor = 'blue';
+  apath.fillColor = 'red';
+  paper.view.draw();
+  
+  tool.onMouseDown = function (event) {
+    var hit = apath.hitTest(event.point, { tolerance: 10, fill: true });
+    hit.item.fillColor = cp.history[cp.history.length - 1];
+  }
+}
+function drawSnowman(cp) {
+  var tool = new paper.Tool();
+  var cirp3 = new paper.Path.Circle(new paper.Point(200, 240), 60);
+  var cirp2 = new paper.Path.Circle(new paper.Point(200, 160), 40);
+  var cirp1 = new paper.Path.Circle(new paper.Point(200, 100), 35);
+  var tri = new paper.Path();
+  tri.add(new paper.Point(225, 105));
+  tri.add(new paper.Point(225, 115));
+  tri.add(new paper.Point(245, 110));
+  tri.closed = true;
+  tri.fillColor = 'white';
+  tri.strokeColor = 'black';
+  cirp1.fillColor = 'white';
+  cirp2.fillColor = 'white';
+  cirp3.fillColor = 'white';
+  cirp1.strokeColor = 'black';
+  cirp2.strokeColor = 'black';
+  cirp3.strokeColor = 'black';
+  paper.view.draw();
+  
+  tool.onMouseDown = function (event) {
+    var hit1 = cirp3.hitTest(event.point, { tolerance: 1, fill: true });
+    if (hit1) {cirp3.fillColor = cp.history[cp.history.length - 1];}
+    var hit2 = cirp2.hitTest(event.point, { tolerance: 1, fill: true });
+    if (hit2) {cirp2.fillColor = cp.history[cp.history.length - 1];}
+    var hit3 = cirp1.hitTest(event.point, { tolerance: 1, fill: true });
+    if (hit3) {cirp1.fillColor = cp.history[cp.history.length - 1];}
+    var hit4 = tri.hitTest(event.point, { tolerance: 1, fill: true });
+    if (hit4) {tri.fillColor = cp.history[cp.history.length - 1];}
+  }
+}
+
+function RGBToHex(r,g,b) {
+  r = r.toString(16);
+  g = g.toString(16);
+  b = b.toString(16);
+
+  if (r.length == 1)
+    r = "0" + r;
+  if (g.length == 1)
+    g = "0" + g;
+  if (b.length == 1)
+    b = "0" + b;
+
+  return "#" + r + g + b;
+}
+  
+  
+</script>
+
+</html>

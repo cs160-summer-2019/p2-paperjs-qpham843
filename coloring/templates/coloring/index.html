@@ -5,7 +5,6 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   	<title>P3 Coloring</title>
-
 	<script type="text/javascript" src="{% static 'coloring/vendors/jquery/jquery-3.3.1.min.js' %}"></script>
 	<script type="text/javascript" src="{% static 'coloring/vendors/paper/paper-full.min.js' %}"></script>
 
@@ -58,6 +57,10 @@
       var start = {
         history: [new paper.Point(0,0)]
       }
+      
+      var colorcircles = {
+        history: []
+      }
 
 			// your rectangle gradient interaction goes in this function
 			// you may also add code outside of the function (e.g., global variables)
@@ -90,13 +93,25 @@
 			// you may replace everything
 			function myCustomInteraction() {
 				var tool = new paper.Tool();
-
+        var rectangle = new paper.Rectangle(new paper.Point(600, 200), new paper.Point(800, 500));
+        var apath = new paper.Path.Rectangle(rectangle);
+        apath.fillColor = 'red';
+        var ellipse = new paper.Rectangle(new paper.Point(100, 200), new paper.Size(100, 200));
+        var shape = new paper.Shape.Ellipse(ellipse);
+        shape.fillColor = 'blue';
+        paper.view.draw();
 				tool.onMouseDown = function (event) {
-				    var hit = mandala.item.hitTest(event.point, { tolerance: 10, fill: true });
-				    if (hit) {
-				        hit.item.fillColor = cp.history[cp.history.length - 1];
+				    var hitrec = apath.hitTest(event.point, { tolerance: 10, fill: true });
+				    if (hitrec) {
+                cp.history.push(apath.fillColor);
 				    }
 				}
+        tool.onMouseUp = function (event) {
+            var hitell = shape.hitTest(event.point, { tolerance: 10, fill: true });
+            if (hitell) {
+                hitell.item.fillColor = cp.history[cp.history.length - 1];
+            }
+        }
 			}
 
 
