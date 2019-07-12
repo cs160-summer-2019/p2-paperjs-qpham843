@@ -6,11 +6,21 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   	<title>P3 Prototype</title>
 	<script type="text/javascript" src="{% static 'coloring/vendors/jquery/jquery-3.3.1.min.js' %}"></script>
-  <script type="text/css" src="{% static 'coloring/vendors/bootstrap/css/bootstrap.min.css' %}"></script>
+  <script rel="stylesheet" type="text/css" src="{% static 'coloring/vendors/bootstrap/css/bootstrap.min.css' %}"></script>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous"/>
 	<script type="text/javascript" src="{% static 'coloring/vendors/paper/paper-full.min.js' %}"></script>
 </head>
 <body>
   <div class="container">
+    <div class="row">
+      <div class="caption col-6">
+        Tap anywhere to color area.
+      </div>
+      <div class="caption col-6">
+        Tap anywhere to choose color.
+      </div>
+    </div>
+    
     <div class="row">
       <canvas id="myCanvas" class="col-6"></canvas>
       <img id="myimage" class="col-6" src="/static/coloring/images/Rainbow.svg">
@@ -23,8 +33,8 @@
     <br>
     
 	  <div class="row">
-      <div id="custom-color-palette" class="col"></div>
-      <div class="dot col" id="current-color"></div>
+      <div id="custom-color-palette" class="col-8"></div>
+      <div class="dot col-1" id="current-color"></div>
     </div>
     
     <br>
@@ -38,6 +48,11 @@
 </body>
   
 <style>
+  div.caption {
+    text-align: center;
+    font-style: bold;
+    font-size: 24px;
+  }
 	div#output {
     color: "black";
     float: left;
