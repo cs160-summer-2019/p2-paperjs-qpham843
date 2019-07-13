@@ -120,7 +120,6 @@ window.onload = function() {
     undocolorhistory: ["#000000"],
     objecthistory: [null],
     index: 0,
-    undospree: false
   }
   
 	var canvas = document.getElementById('myCanvas');
@@ -154,7 +153,7 @@ window.onload = function() {
     document.getElementById("current-color").style.backgroundColor = rgbavalue;
     var hexval = RGBToHex(pixelData[0], pixelData[1], pixelData[2]);
     doList.colorhistory.push(hexval);
-    updateCustomCPOptions(hexval, customCP);
+    updateCustomCPOptions(hexval, customCP, doList);
   });
  }
   
@@ -164,17 +163,12 @@ window.onload = function() {
 function undo(doList) {
   $('#undo').click(function() {
     if (doList.index != 0) {
-      console.log("CALLED");
       var lastobject = doList.objecthistory[doList.index];
       var lastcolor = doList.undocolorhistory[doList.index];
-      console.log(doList.objecthistory);
-      console.log(doList.undocolorhistory);
-      console.log(doList.index);
       lastobject.fillColor = lastcolor;
       doList.objecthistory.pop();
       doList.undocolorhistory.pop();
       doList.index -= 1;
-      doList.undospree = true;
     }
   });
 }
@@ -201,6 +195,10 @@ function drawSnowman(doList) {
   var cirp3 = new paper.Path.Circle(new paper.Point(200, 240), 60);
   var cirp2 = new paper.Path.Circle(new paper.Point(200, 160), 40);
   var cirp1 = new paper.Path.Circle(new paper.Point(200, 100), 35);
+  var ell1 = new paper.Path.Ellipse(new paper.Point(190, 95), new paper.Point(200, 110));
+  var ell2 = new paper.Path.Ellipse(new paper.Point(210, 95), new paper.Point(220, 110));
+  var ell3 = new paper.Path.Ellipse(new paper.Point(150, 90), new paper.Point(250, 70));
+  var rect1 = new paper.Path.Rectangle(new paper.Point(170, 75), new paper.Point(230, 45));
   var tri = new paper.Path();
   tri.add(new paper.Point(225, 105));
   tri.add(new paper.Point(225, 115));
@@ -211,6 +209,14 @@ function drawSnowman(doList) {
   cirp1.fillColor = '#ffffff';
   cirp2.fillColor = '#ffffff';
   cirp3.fillColor = '#ffffff';
+  ell1.fillColor = '#ffffff';
+  ell2.fillColor = '#ffffff';
+  ell3.fillColor = '#ffffff';
+  rect1.fillColor = '#ffffff';
+  rect1.strokeColor = '#000000';
+  ell3.strokeColor = '#000000';
+  ell2.strokeColor = '#000000';
+  ell1.strokeColor = '#000000';
   cirp1.strokeColor = '#000000';
   cirp2.strokeColor = '#000000';
   cirp3.strokeColor = '#000000';
@@ -223,7 +229,6 @@ function drawSnowman(doList) {
       doList.objecthistory.push(cirp3);
       cirp3.fillColor = doList.colorhistory[doList.colorhistory.length - 1];
       doList.index += 1;
-      doList.undospree = false;
     }
     var hit2 = cirp2.hitTest(event.point, { tolerance: 0, fill: true });
     if (hit2) {
@@ -231,7 +236,6 @@ function drawSnowman(doList) {
       doList.objecthistory.push(cirp2);
       cirp2.fillColor = doList.colorhistory[doList.colorhistory.length - 1];
       doList.index += 1;
-      doList.undospree = false;
     }
     var hit3 = cirp1.hitTest(event.point, { tolerance: 0, fill: true });
     if (hit3) {
@@ -239,7 +243,6 @@ function drawSnowman(doList) {
       doList.objecthistory.push(cirp1);
       cirp1.fillColor = doList.colorhistory[doList.colorhistory.length - 1];
       doList.index += 1;
-      doList.undospree = false;
     }
     var hit4 = tri.hitTest(event.point, { tolerance: 1, fill: true });
     if (hit4) {
@@ -247,7 +250,34 @@ function drawSnowman(doList) {
       doList.objecthistory.push(tri);
       tri.fillColor = doList.colorhistory[doList.colorhistory.length - 1];
       doList.index += 1;
-      doList.undospree = false;
+    }
+    var hit5 = ell1.hitTest(event.point, { tolerance: 1, fill: true });
+    if (hit5) {
+      doList.undocolorhistory.push(rgbToHex(ell1.fillColor.toCanvasStyle()));
+      doList.objecthistory.push(ell1);
+      ell1.fillColor = doList.colorhistory[doList.colorhistory.length - 1];
+      doList.index += 1;
+    }
+    var hit6 = ell2.hitTest(event.point, { tolerance: 1, fill: true });
+    if (hit6) {
+      doList.undocolorhistory.push(rgbToHex(ell2.fillColor.toCanvasStyle()));
+      doList.objecthistory.push(ell2);
+      ell2.fillColor = doList.colorhistory[doList.colorhistory.length - 1];
+      doList.index += 1;
+    }
+    var hit7 = ell3.hitTest(event.point, { tolerance: 1, fill: true });
+    if (hit7) {
+      doList.undocolorhistory.push(rgbToHex(ell3.fillColor.toCanvasStyle()));
+      doList.objecthistory.push(ell3);
+      ell3.fillColor = doList.colorhistory[doList.colorhistory.length - 1];
+      doList.index += 1;
+    }
+    var hit8 = rect1.hitTest(event.point, { tolerance: 1, fill: true });
+    if (hit8) {
+      doList.undocolorhistory.push(rgbToHex(rect1.fillColor.toCanvasStyle()));
+      doList.objecthistory.push(rect1);
+      rect1.fillColor = doList.colorhistory[doList.colorhistory.length - 1];
+      doList.index += 1;
     }
   }
 }
@@ -306,14 +336,14 @@ function createCustomColorsPalette(colors, customCP) {
 	  var $swatch = $("<div>").css("background-color", customCP.options[i]).addClass("swatch");
 		$swatch.click(function(){
 		  // add color to the color palette history
-			customdoList.colorhistory.push($(this).css("background-color"));
+			customCP.history.push($(this).css("background-color"));
 		});
 		customCP.$container.append($swatch);
   }
 }
       
 //update function
-function updateCustomCPOptions(color, customCP) {
+function updateCustomCPOptions(color, customCP, doList) {
   var contain = false;
   for (var i = 0; i <= (customCP.options.length - 1); i++) {
     if (compareString(color, customCP.options[i])) {
@@ -325,7 +355,9 @@ function updateCustomCPOptions(color, customCP) {
     var $swatch = $("<div>").css("background-color", color).addClass("swatch");
     $swatch.click(function(){
 		  // add color to the color palette history
-		  customdoList.colorhistory.push($(this).css("background-color"));
+		  customCP.history.push($(this).css("background-color"));
+      document.getElementById("current-color").style.backgroundColor = color;
+      doList.colorhistory.push(color);
 		});
 		customCP.$container.append($swatch);
   }
